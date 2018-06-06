@@ -1,0 +1,175 @@
+package cvut.fel.kulhanek.hw7;
+
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
+import cvut.fel.kulhanek.hw7.viewmodel.CategoryTreeItemViewModel;
+import cvut.fel.kulhanek.hw7.viewmodel.SelectCategoryViewModel;
+import cvut.fel.kulhanek.hw7.viewmodel.SelectedCategoryViewModelFactory;
+
+import javax.swing.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class SelectCategoryWindow extends JDialog {
+    private JPanel contentPane;
+    private JButton buttonOK;
+    private JButton buttonCancel;
+    private JTree categoryTree;
+    private JScrollPane scrollPane;
+    private SelectCategoryViewModel viewModel;
+    private Map<CategoryTreeItemViewModel, DefaultMutableTreeNode> modelMap;
+
+    public SelectCategoryWindow(SelectCategoryViewModel viewModel) {
+        this.viewModel = viewModel;
+        this.modelMap = new HashMap<>();
+        $$$setupUI$$$();
+        setContentPane(contentPane);
+        setModal(true);
+        getRootPane().setDefaultButton(buttonOK);
+
+        buttonOK.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                onOK();
+            }
+        });
+
+        buttonCancel.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                onCancel();
+            }
+        });
+
+        // call onCancel() when cross is clicked
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                onCancel();
+            }
+        });
+
+        // call onCancel() on ESCAPE
+        contentPane.registerKeyboardAction(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                onCancel();
+            }
+        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+
+        categoryTree.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                SelectCategoryWindow.this.viewModel.setSelectedCategory((CategoryTreeItemViewModel) ((DefaultMutableTreeNode) e.getPath().getLastPathComponent()).getUserObject());
+
+                SelectCategoryWindow.this.bindBack();
+            }
+        });
+
+        this.viewModel.setSelectedCategory(null);
+        //this.bindBack();
+    }
+
+    private void bindBack() {
+        if (this.buttonOK.isEnabled() != this.viewModel.isCategorySelected()) {
+            this.buttonOK.setEnabled(this.viewModel.isCategorySelected());
+            this.buttonOK.revalidate();
+            this.buttonOK.repaint();
+        }
+
+        /*if(this.categoryTree.getSelectionPath().getLastPathComponent() != this.viewModel.getSelectedCategory()) {
+            this.categoryTree.setSelectionPath(new TreePath(modelMap.get(this.viewModel.getSelectedCategory()).getPath()));
+        }*/
+    }
+
+    private void onOK() {
+        // add your code here
+        this.viewModel.setSelected(true);
+        dispose();
+    }
+
+    private void onCancel() {
+        // add your code here if necessary
+        this.viewModel.setSelectedCategory(null);
+        this.viewModel.setSelected(false);
+        dispose();
+    }
+
+    public static void main(String[] args) {
+        SelectCategoryViewModel vm = ServiceContainer.getCurrent().resolve(SelectedCategoryViewModelFactory.class).create();
+        SelectCategoryWindow dialog = new SelectCategoryWindow(vm);
+        dialog.pack();
+        dialog.setVisible(true);
+        System.exit(0);
+    }
+
+    private void createUIComponents() {
+        List<CategoryTreeItemViewModel> tree = viewModel.getCategoryTree();
+        DefaultMutableTreeNode categoryTreeRoot = new DefaultMutableTreeNode("Categories");
+        createNode(categoryTreeRoot, tree);
+
+        this.categoryTree = new JTree(categoryTreeRoot);
+        this.categoryTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+    }
+
+    private void createNode(DefaultMutableTreeNode treeNode, List<CategoryTreeItemViewModel> modelList) {
+        for (CategoryTreeItemViewModel model : modelList) {
+            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(model);
+            treeNode.add(childNode);
+            List<CategoryTreeItemViewModel> subChildren = model.getChildren();
+            if (!subChildren.isEmpty()) {
+                createNode(childNode, subChildren);
+            }
+        }
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        createUIComponents();
+        contentPane = new JPanel();
+        contentPane.setLayout(new GridLayoutManager(2, 1, new Insets(10, 10, 10, 10), -1, -1));
+        contentPane.setMinimumSize(new Dimension(400, 95));
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+        contentPane.add(panel1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, 1, null, null, null, 0, false));
+        final Spacer spacer1 = new Spacer();
+        panel1.add(spacer1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        final JPanel panel2 = new JPanel();
+        panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1, true, false));
+        panel1.add(panel2, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        buttonOK = new JButton();
+        buttonOK.setEnabled(false);
+        buttonOK.setText("OK");
+        panel2.add(buttonOK, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        buttonCancel = new JButton();
+        buttonCancel.setText("Cancel");
+        panel2.add(buttonCancel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JPanel panel3 = new JPanel();
+        panel3.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        contentPane.add(panel3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        scrollPane = new JScrollPane();
+        panel3.add(scrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        categoryTree.setRootVisible(false);
+        scrollPane.setViewportView(categoryTree);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return contentPane;
+    }
+}

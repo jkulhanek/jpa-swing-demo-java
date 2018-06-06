@@ -1,0 +1,197 @@
+package cvut.fel.kulhanek.hw7;
+
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
+import cvut.fel.kulhanek.hw7.viewmodel.HomeViewModel;
+import cvut.fel.kulhanek.hw7.viewmodel.Observer;
+import cvut.fel.kulhanek.hw7.viewmodel.ProductViewModel;
+
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Map;
+
+public class HomeWindow {
+    private JPanel contentPane;
+    private JButton addProductButton;
+    private JList productList;
+    private JButton editButton;
+    private JButton deleteButton;
+    private JButton refreshButton;
+    private HomeViewModel viewModel;
+    private DefaultListModel<ProductViewModel> listModel;
+
+    public HomeWindow(HomeViewModel viewModel) {
+        this.viewModel = viewModel;
+        $$$setupUI$$$();
+        addProductButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HomeWindow.this.viewModel.addProductAction();
+            }
+        });
+
+        this.bind();
+
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HomeWindow.this.viewModel.editProductAction();
+            }
+        });
+
+        productList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                ProductViewModel item = null;
+
+                if (!productList.isSelectionEmpty())
+                    item = (ProductViewModel) productList.getSelectedValue();
+                HomeWindow.this.viewModel.setSelectedProduct(item);
+
+            }
+        });
+
+        this.viewModel.addObserver(new Observer() {
+            @Override
+            public void onChanged(String property, Object value) {
+                HomeWindow.this.onChanged(property, value);
+            }
+        });
+
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HomeWindow.this.viewModel.deleteProductAction();
+            }
+        });
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HomeWindow.this.viewModel.refresh();
+            }
+        });
+    }
+
+    private void onChanged(String name, Object value) {
+        if (name.equals("isProductSelected")) {
+            this.editButton.setEnabled((boolean) value);
+            this.editButton.revalidate();
+            this.editButton.repaint();
+
+            this.deleteButton.setEnabled((boolean) value);
+            this.deleteButton.revalidate();
+            this.deleteButton.repaint();
+        }
+
+        if (name.equals("selectedProduct")) {
+            if (value == null) {
+                this.productList.clearSelection();
+            } else {
+                this.productList.setSelectedValue(value, true);
+            }
+        }
+
+        if (name.equals("products")) {
+            this.listModel.clear();
+            for (ProductViewModel p : this.viewModel.getProducts()) {
+                this.listModel.addElement(p);
+            }
+        }
+
+        if (name.equals("products-")) {
+            ProductViewModel val = (ProductViewModel) value;
+            this.listModel.removeElement(val);
+        }
+
+        if (name.equals("products+")) {
+            ProductViewModel val = (ProductViewModel) value;
+            this.listModel.addElement(val);
+        }
+
+        if (name.equals("products[]")) {
+            Map.Entry<Integer, ProductViewModel> val = (Map.Entry<Integer, ProductViewModel>) value;
+            int i = 0;
+            for (; i < this.listModel.size(); ++i) {
+                if (this.listModel.get(i).getId().equals(val.getKey())) {
+                    break;
+                }
+            }
+
+            if (i < this.listModel.size()) {
+                this.listModel.set(i, val.getValue());
+            }
+        }
+    }
+
+    private void bind() {
+        this.listModel.clear();
+        for (ProductViewModel p : this.viewModel.getProducts()) {
+            this.listModel.addElement(p);
+        }
+
+        this.deleteButton.setEnabled(this.viewModel.isProductSelected());
+        this.editButton.setEnabled(this.viewModel.isProductSelected());
+    }
+
+    public JPanel getContentPane() {
+        return contentPane;
+    }
+
+    private void createUIComponents() {
+        this.listModel = new DefaultListModel<>();
+        productList = new JList<>(this.listModel);
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        createUIComponents();
+        contentPane = new JPanel();
+        contentPane.setLayout(new GridLayoutManager(2, 1, new Insets(10, 10, 10, 10), -1, -1));
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        contentPane.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        panel1.add(scrollPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        productList.setSelectionMode(0);
+        scrollPane1.setViewportView(productList);
+        final JPanel panel2 = new JPanel();
+        panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+        contentPane.add(panel2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, 1, null, null, null, 0, false));
+        final Spacer spacer1 = new Spacer();
+        panel2.add(spacer1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        final JPanel panel3 = new JPanel();
+        panel3.setLayout(new GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), -1, -1));
+        panel2.add(panel3, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        editButton = new JButton();
+        editButton.setText("Edit");
+        panel3.add(editButton, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        addProductButton = new JButton();
+        addProductButton.setText("Add");
+        panel3.add(addProductButton, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        deleteButton = new JButton();
+        deleteButton.setEnabled(false);
+        deleteButton.setText("Delete");
+        panel3.add(deleteButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        refreshButton = new JButton();
+        refreshButton.setText("Reload");
+        panel3.add(refreshButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return contentPane;
+    }
+}
